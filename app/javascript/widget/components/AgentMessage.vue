@@ -6,14 +6,7 @@
     }"
   >
     <div v-if="!isASubmittedForm" class="agent-message">
-      <div class="avatar-wrap">
-        <thumbnail
-          v-if="message.showAvatar || hasRecordedResponse"
-          :src="avatarUrl"
-          size="24px"
-          :username="agentName"
-        />
-      </div>
+      <div class="avatar-wrap">&nbsp;</div>
       <div class="message-wrap">
         <div v-if="hasReplyTo" class="flex mt-2 mb-1 text-xs">
           <reply-to-chip :reply-to="replyTo" />
@@ -66,12 +59,6 @@
             />
           </div>
         </div>
-        <p
-          v-if="message.showAvatar || hasRecordedResponse"
-          v-dompurify-html="agentName"
-          class="agent-name"
-          :class="$dm('text-slate-700', 'dark:text-slate-200')"
-        />
       </div>
     </div>
 
@@ -94,7 +81,6 @@ import { messageStamp } from 'shared/helpers/timeHelper';
 import ImageBubble from 'widget/components/ImageBubble.vue';
 import VideoBubble from 'widget/components/VideoBubble.vue';
 import FileBubble from 'widget/components/FileBubble.vue';
-import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 import { MESSAGE_TYPE } from 'widget/helpers/constants';
 import configMixin from '../mixins/configMixin';
 import messageMixin from '../mixins/messageMixin';
@@ -110,7 +96,6 @@ export default {
     AgentMessageBubble,
     ImageBubble,
     VideoBubble,
-    Thumbnail,
     UserMessage,
     FileBubble,
     MessageReplyButton,
