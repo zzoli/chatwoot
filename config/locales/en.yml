@@ -180,7 +180,7 @@ en:
       unmuted: "%{user_name} has unmuted the conversation"
     templates:
       greeting_message_body: "%{account_name} typically replies in a few hours."
-      ways_to_reach_you_message_body: "Give me a way to contact you later! Send me an SMS or an email if I can't respond immediately!"
+      ways_to_reach_you_message_body: "Send me an SMS or an email if I can't respond immediately!"
       email_input_box_message_body: "Get notified by email"
       csat_input_message_body: "Please rate the conversation"
     reply:
