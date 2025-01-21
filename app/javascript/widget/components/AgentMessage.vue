@@ -172,12 +172,7 @@ export default {
   >
     <div v-if="!isASubmittedForm" class="agent-message">
       <div class="avatar-wrap">
-        <Thumbnail
-          v-if="message.showAvatar || hasRecordedResponse"
-          :src="avatarUrl"
-          size="24px"
-          :username="agentName"
-        />
+        &nbsp;
       </div>
       <div class="message-wrap">
         <div v-if="hasReplyTo" class="flex mt-2 mb-1 text-xs">
@@ -233,12 +228,6 @@ export default {
             />
           </div>
         </div>
-        <p
-          v-if="message.showAvatar || hasRecordedResponse"
-          v-dompurify-html="agentName"
-          class="agent-name"
-          :class="getThemeClass('text-slate-700', 'dark:text-slate-200')"
-        />
       </div>
     </div>
 
