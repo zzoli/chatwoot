@@ -31,13 +31,7 @@ const handleDelete = () => {
     class="flex flex-col gap-2 py-2 mx-6 border-b border-n-strong group/note"
   >
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-1.5 py-2.5 min-w-0">
-        <Avatar
-          :name="note?.user?.name || 'Bot'"
-          :src="note?.user?.thumbnail || '/assets/images/chatwoot_bot.png'"
-          :size="16"
-          rounded-full
-        />
+      <div class="flex items-center gap-1.5 py-2.5 min-w-0">       
         <div class="min-w-0 truncate">
           <span class="inline-flex items-center gap-1 text-sm text-n-slate-11">
             <span class="font-medium">{{ writtenBy }}</span>
