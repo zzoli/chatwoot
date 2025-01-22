@@ -128,6 +128,10 @@ class Contact < ApplicationRecord
     )
   }
 
+  def
+    '[' + inboxes.first().name + '] ' + name
+  end
+
   def get_source_id(inbox_id)
     contact_inboxes.find_by!(inbox_id: inbox_id).source_id
   end
@@ -139,7 +143,7 @@ class Contact < ApplicationRecord
       email: email,
       id: id,
       identifier: identifier,
-      name: '[' + inboxes.first().name + '] ' + name,
+      name: inbox_name,
       phone_number: phone_number,
       thumbnail: avatar_url,
       type: 'contact'
