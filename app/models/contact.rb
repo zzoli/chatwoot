@@ -129,7 +129,7 @@ class Contact < ApplicationRecord
   }
 
   def inbox_name
-    inboxes.first().name + ' ' + name
+    '[' + inboxes.first().name + '] ' + name
   end
 
   def get_source_id(inbox_id)
