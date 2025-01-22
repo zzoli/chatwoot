@@ -139,7 +139,7 @@ class Contact < ApplicationRecord
       email: email,
       id: id,
       identifier: identifier,
-      name: name,
+      name: '[' + inboxes.first().name + '] ' + name
       phone_number: phone_number,
       thumbnail: avatar_url,
       type: 'contact'
