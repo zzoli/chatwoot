@@ -128,7 +128,7 @@ class Contact < ApplicationRecord
     )
   }
 
-  def
+  def inbox_name
     inboxes.first().name + ' ' + name
   end
 
