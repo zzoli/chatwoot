@@ -286,10 +286,7 @@ const shouldGroupWithNext = computed(() => {
 });
 
 const shouldShowAvatar = computed(() => {
-  if (props.messageType === MESSAGE_TYPES.ACTIVITY) return false;
-  if (orientation.value === ORIENTATION.LEFT) return false;
-
-  return true;
+  return false;
 });
 
 const componentToRender = computed(() => {

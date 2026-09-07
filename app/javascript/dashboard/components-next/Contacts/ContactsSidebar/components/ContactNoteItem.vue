@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { dynamicTime } from 'shared/helpers/timeHelper';
 import { useToggle } from '@vueuse/core';
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
-import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
@@ -51,16 +50,6 @@ onMounted(() => {
   <div class="flex flex-col gap-2 border-b border-n-strong group/note">
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-1.5 min-w-0">
-        <Avatar
-          :name="note?.user?.name || 'Bot'"
-          :src="
-            note?.user?.name
-              ? note?.user?.thumbnail
-              : '/assets/images/chatwoot_bot.png'
-          "
-          :size="16"
-          rounded-full
-        />
         <div class="min-w-0 truncate">
           <span class="inline-flex items-center gap-1 text-sm text-n-slate-11">
             <span class="font-medium text-n-slate-12">{{ writtenBy }}</span>
