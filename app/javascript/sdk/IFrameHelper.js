@@ -22,7 +22,11 @@ import {
 } from './bubbleHelpers';
 import { isWidgetColorLighter } from 'shared/helpers/colorHelper';
 import { dispatchWindowEvent } from 'shared/helpers/CustomEventHelper';
-import { CHATWOOT_ERROR, CHATWOOT_READY } from '../widget/constants/sdkEvents';
+import {
+  CHATWOOT_ERROR,
+  CHATWOOT_POSTBACK,
+  CHATWOOT_READY,
+} from '../widget/constants/sdkEvents';
 import { SET_USER_ERROR } from '../widget/constants/errorTypes';
 import { getUserCookieName, setCookieWithDomain } from './cookieHelpers';
 import {
@@ -31,7 +35,6 @@ import {
 } from 'shared/helpers/AudioNotificationHelper';
 import { isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
-import addHours from 'date-fns/addHours';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
   setCookieWithDomain('cw_conversation', cookieContent, {
@@ -39,7 +42,7 @@ const updateAuthCookie = (cookieContent, baseDomain = '') =>
   });
 
 const updateCampaignReadStatus = baseDomain => {
-  const expireBy = addHours(new Date(), 1);
+  const expireBy = new Date(Date.now() + 60 * 60 * 1000);
   setCookieWithDomain('cw_snooze_campaigns_till', Number(expireBy), {
     expires: expireBy,
     baseDomain,
@@ -78,6 +81,7 @@ export const IFrameHelper = {
 
     addClasses(widgetHolder, holderClassName);
     widgetHolder.id = 'cw-widget-holder';
+    widgetHolder.dataset.turboPermanent = true;
     widgetHolder.appendChild(iframe);
     body.appendChild(widgetHolder);
     IFrameHelper.initPostMessageCommunication();
@@ -161,6 +165,13 @@ export const IFrameHelper = {
         darkMode: window.$chatwoot.darkMode,
         showUnreadMessagesDialog: window.$chatwoot.showUnreadMessagesDialog,
         campaignsSnoozedTill,
+        welcomeTitle: window.$chatwoot.welcomeTitle,
+        welcomeDescription: window.$chatwoot.welcomeDescription,
+        availableMessage: window.$chatwoot.availableMessage,
+        unavailableMessage: window.$chatwoot.unavailableMessage,
+        enableFileUpload: window.$chatwoot.enableFileUpload,
+        enableEmojiPicker: window.$chatwoot.enableEmojiPicker,
+        enableEndConversation: window.$chatwoot.enableEndConversation,
       });
       IFrameHelper.onLoad({
         widgetColor: message.config.channelConfig.widgetColor,
@@ -201,6 +212,13 @@ export const IFrameHelper = {
 
     setCampaignReadOn() {
       updateCampaignReadStatus(window.$chatwoot.baseDomain);
+    },
+
+    postback(data) {
+      dispatchWindowEvent({
+        eventName: CHATWOOT_POSTBACK,
+        data,
+      });
     },
 
     toggleBubble: state => {

@@ -1,12 +1,15 @@
 <script setup>
 import { computed, reactive, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { required, email, minLength } from '@vuelidate/validators';
+import { required, email } from '@vuelidate/validators';
 import { useVuelidate } from '@vuelidate/core';
 import { splitName } from '@chatwoot/utils';
 import countries from 'shared/constants/countries.js';
+import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+import { useAccount } from 'dashboard/composables/useAccount';
 import Input from 'dashboard/components-next/input/Input.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
+import CompanySelector from 'dashboard/components-next/Companies/CompanySelector.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import PhoneNumberInput from 'dashboard/components-next/phonenumberinput/PhoneNumberInput.vue';
 
@@ -28,6 +31,7 @@ const props = defineProps({
 const emit = defineEmits(['update']);
 
 const { t } = useI18n();
+const { currentAccount, isCloudFeatureEnabled } = useAccount();
 
 const FORM_CONFIG = {
   FIRST_NAME: { field: 'firstName' },
@@ -35,7 +39,7 @@ const FORM_CONFIG = {
   EMAIL_ADDRESS: { field: 'email' },
   PHONE_NUMBER: { field: 'phoneNumber' },
   CITY: { field: 'additionalAttributes.city' },
-  COUNTRY: { field: 'additionalAttributes.country' },
+  COUNTRY: { field: 'additionalAttributes.countryCode' },
   BIO: { field: 'additionalAttributes.description' },
   COMPANY_NAME: { field: 'additionalAttributes.companyName' },
 };
@@ -44,6 +48,8 @@ const SOCIAL_CONFIG = {
   LINKEDIN: 'i-ri-linkedin-box-fill',
   FACEBOOK: 'i-ri-facebook-circle-fill',
   INSTAGRAM: 'i-ri-instagram-line',
+  TELEGRAM: 'i-ri-telegram-fill',
+  TIKTOK: 'i-ri-tiktok-fill',
   TWITTER: 'i-ri-twitter-x-fill',
   GITHUB: 'i-ri-github-fill',
 };
@@ -52,6 +58,7 @@ const defaultState = {
   id: 0,
   name: '',
   email: '',
+  companyId: '',
   firstName: '',
   lastName: '',
   phoneNumber: '',
@@ -65,6 +72,8 @@ const defaultState = {
       facebook: '',
       github: '',
       instagram: '',
+      telegram: '',
+      tiktok: '',
       linkedin: '',
       twitter: '',
     },
@@ -74,13 +83,30 @@ const defaultState = {
 const state = reactive({ ...defaultState });
 
 const validationRules = {
-  firstName: { required, minLength: minLength(2) },
+  firstName: { required },
   email: { email },
 };
 
 const v$ = useVuelidate(validationRules, state);
 
 const isFormInvalid = computed(() => v$.value.$invalid);
+const hasCompaniesFeature = computed(
+  () =>
+    currentAccount.value?.id && isCloudFeatureEnabled(FEATURE_FLAGS.COMPANIES)
+);
+const showCompanySelector = computed(
+  () =>
+    hasCompaniesFeature.value &&
+    (Boolean(state.companyId) || !state.additionalAttributes.companyName)
+);
+
+const emitContactUpdate = async () => {
+  const isFormValid = await v$.value.$validate();
+  if (!isFormValid) return;
+
+  const { firstName, lastName, ...stateWithoutNames } = state;
+  emit('update', stateWithoutNames);
+};
 
 const prepareStateBasedOnProps = () => {
   if (props.isNewContact) {
@@ -92,6 +118,7 @@ const prepareStateBasedOnProps = () => {
     name = '',
     email: emailAddress,
     phoneNumber,
+    companyId = '',
     additionalAttributes = {},
   } = props.contactData || {};
   const { firstName, lastName } = splitName(name || '');
@@ -101,12 +128,17 @@ const prepareStateBasedOnProps = () => {
     countryCode = '',
     country = '',
     city = '',
+    socialTelegramUserName = '',
     socialProfiles = {},
   } = additionalAttributes || {};
+
+  const telegramUsername =
+    socialProfiles?.telegram || socialTelegramUserName || '';
 
   Object.assign(state, {
     id,
     name,
+    companyId: companyId || '',
     firstName,
     lastName,
     email: emailAddress,
@@ -117,13 +149,16 @@ const prepareStateBasedOnProps = () => {
       countryCode,
       country,
       city,
-      socialProfiles,
+      socialProfiles: {
+        ...socialProfiles,
+        telegram: telegramUsername,
+      },
     },
   });
 };
 
 const countryOptions = computed(() =>
-  countries.map(({ name }) => ({ label: name, value: name }))
+  countries.map(({ name, id }) => ({ label: name, value: id }))
 );
 
 const editDetailsForm = computed(() =>
@@ -189,11 +224,7 @@ const getFormBinding = key => {
         }
       }
 
-      const isFormValid = await v$.value.$validate();
-      if (isFormValid) {
-        const { firstName, lastName, ...stateWithoutNames } = state;
-        emit('update', stateWithoutNames);
-      }
+      await emitContactUpdate();
     },
   });
 };
@@ -205,9 +236,15 @@ const getMessageType = key => {
 };
 
 const handleCountrySelection = value => {
-  const selectedCountry = countries.find(option => option.name === value);
-  state.additionalAttributes.countryCode = selectedCountry?.id || '';
+  const selectedCountry = countries.find(option => option.id === value);
+  state.additionalAttributes.country = selectedCountry?.name || '';
   emit('update', state);
+};
+
+const handleCompanySelection = async ({ id, name }) => {
+  state.companyId = id || '';
+  state.additionalAttributes.companyName = name || '';
+  await emitContactUpdate();
 };
 
 const resetValidation = () => {
@@ -218,10 +255,13 @@ const resetForm = () => {
   Object.assign(state, defaultState);
 };
 
-watch(() => props.contactData, prepareStateBasedOnProps, {
-  immediate: true,
-  deep: true,
-});
+watch(
+  () => props.contactData?.id,
+  id => {
+    if (id) prepareStateBasedOnProps();
+  },
+  { immediate: true }
+);
 
 // Expose state to parent component for avatar upload
 defineExpose({
@@ -242,15 +282,14 @@ defineExpose({
         <template v-for="item in editDetailsForm" :key="item.key">
           <ComboBox
             v-if="item.key === 'COUNTRY'"
-            v-model="state.additionalAttributes.country"
+            v-model="state.additionalAttributes.countryCode"
             :options="countryOptions"
             :placeholder="item.placeholder"
             class="[&>div>button]:h-8"
             :class="{
-              '[&>div>button]:bg-n-alpha-black2 [&>div>button]:!outline-transparent':
+              '[&>div>button]:bg-n-alpha-black2 [&>div>button:not(.focused)]:!outline-transparent':
                 !isDetailsView,
-              '[&>div>button]:!outline-n-weak [&>div>button]:hover:!outline-n-strong [&>div>button]:!bg-n-alpha-black2':
-                isDetailsView,
+              '[&>div>button]:!bg-n-alpha-black2': isDetailsView,
             }"
             @update:model-value="handleCountrySelection"
           />
@@ -260,13 +299,22 @@ defineExpose({
             :placeholder="item.placeholder"
             :show-border="isDetailsView"
           />
+          <CompanySelector
+            v-else-if="item.key === 'COMPANY_NAME' && showCompanySelector"
+            :model-value="state.companyId"
+            :selected-name="state.additionalAttributes.companyName"
+            :is-details-view="isDetailsView"
+            @select="handleCompanySelection"
+          />
           <Input
             v-else
             v-model="getFormBinding(item.key).value"
             :placeholder="item.placeholder"
             :message-type="getMessageType(item.key)"
             :custom-input-class="`h-8 !pt-1 !pb-1 ${
-              !isDetailsView ? '[&:not(.error,.focus)]:!border-transparent' : ''
+              !isDetailsView
+                ? '[&:not(.error,.focus)]:!outline-transparent'
+                : ''
             }`"
             class="w-full"
             @input="
@@ -303,7 +351,7 @@ defineExpose({
             v-model="
               state.additionalAttributes.socialProfiles[item.key.toLowerCase()]
             "
-            class="w-auto min-w-[100px] text-sm bg-transparent reset-base text-n-slate-12 dark:text-n-slate-12 placeholder:text-n-slate-10 dark:placeholder:text-n-slate-10"
+            class="w-auto min-w-[100px] text-sm bg-transparent outline-none reset-base text-n-slate-12 dark:text-n-slate-12 placeholder:text-n-slate-10 dark:placeholder:text-n-slate-10"
             :placeholder="item.placeholder"
             :size="item.placeholder.length"
             @input="emit('update', state)"

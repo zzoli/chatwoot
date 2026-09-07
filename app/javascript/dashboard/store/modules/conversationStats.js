@@ -1,38 +1,56 @@
 import types from '../mutation-types';
 import ConversationApi from '../../api/inbox/conversation';
+import { debounce } from '@chatwoot/utils';
 
 const state = {
   mineCount: 0,
   unAssignedCount: 0,
   allCount: 0,
-  updatedOn: null,
 };
 
 export const getters = {
   getStats: $state => $state,
 };
 
+// Create a debounced version of the actual API call function
+const fetchMetaData = async (commit, params) => {
+  try {
+    const response = await ConversationApi.meta(params);
+    const {
+      data: { meta },
+    } = response;
+    commit(types.SET_CONV_TAB_META, meta);
+  } catch (error) {
+    // ignore
+  }
+};
+
+const debouncedFetchMetaData = debounce(fetchMetaData, 1000, false, 5000);
+const longDebouncedFetchMetaData = debounce(fetchMetaData, 7500, false, 20000);
+const superLongDebouncedFetchMetaData = debounce(
+  fetchMetaData,
+  15000,
+  false,
+  30000
+);
+
+const metaDebouncers = {
+  default: debouncedFetchMetaData,
+  long: longDebouncedFetchMetaData,
+  superLong: superLongDebouncedFetchMetaData,
+};
+
+// allCount is 0 until a meta request succeeds; under load it stays 0, so treat
+// the unknown case as a large account and poll slowest instead of fastest.
+export const getMetaDebounceKey = allCount => {
+  if (allCount > 2000 || allCount === 0) return 'superLong';
+  if (allCount > 100) return 'long';
+  return 'default';
+};
+
 export const actions = {
-  get: async ({ commit, state: $state }, params) => {
-    const currentTime = new Date();
-    const lastUpdatedTime = new Date($state.updatedOn);
-
-    // Skip large accounts from making too many requests
-    if (currentTime - lastUpdatedTime < 10000 && $state.allCount > 1000) {
-      // eslint-disable-next-line no-console
-      console.warn('Skipping conversation meta fetch');
-      return;
-    }
-
-    try {
-      const response = await ConversationApi.meta(params);
-      const {
-        data: { meta },
-      } = response;
-      commit(types.SET_CONV_TAB_META, meta);
-    } catch (error) {
-      // Ignore error
-    }
+  get: ({ commit, state: $state }, params) => {
+    metaDebouncers[getMetaDebounceKey($state.allCount)](commit, params);
   },
   set({ commit }, meta) {
     commit(types.SET_CONV_TAB_META, meta);

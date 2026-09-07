@@ -1,10 +1,11 @@
-import { SDK_CSS } from './sdk.js';
+import SDK_CSS from './sdk.css?inline';
 import { IFrameHelper } from './IFrameHelper';
 
 export const loadCSS = () => {
   const css = document.createElement('style');
   css.innerHTML = `${SDK_CSS}`;
   css.id = 'cw-widget-styles';
+  css.dataset.turboPermanent = true;
   document.body.appendChild(css);
 };
 

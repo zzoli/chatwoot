@@ -12,25 +12,36 @@
       "ERROR_MESSAGE": "无法发送，请重试"
     }
   },
+  "THUMBNAIL": {
+    "AUTHOR": {
+      "NOT_AVAILABLE": "暂无"
+    }
+  },
   "TEAM_AVAILABILITY": {
     "ONLINE": "在线",
-    "OFFLINE": "当前已离线"
+    "OFFLINE": "当前已离线",
+    "BACK_AS_SOON_AS_POSSIBLE": "我们会尽快回复您"
   },
   "REPLY_TIME": {
     "IN_A_FEW_MINUTES": "通常在几分钟内回复您",
     "IN_A_FEW_HOURS": "通常在几小时内回复您",
     "IN_A_DAY": "通常在一天之内回复您",
-    "BACK_IN": "我们回到了线上"
+    "BACK_IN_HOURS": "{n} 小时后恢复在线",
+    "BACK_IN_MINUTES": "{time} 分钟后恢复在线",
+    "BACK_AT_TIME": "{time} 恢复在线",
+    "BACK_ON_DAY": "{day} 恢复在线",
+    "BACK_TOMORROW": "明天恢复在线",
+    "BACK_IN_SOME_TIME": "稍后恢复在线"
   },
-  "DAY_NAMES": [
-    "周日",
-    "周一",
-    "周二",
-    "周三",
-    "周四",
-    "周五",
-    "周六"
-  ],
+  "DAY_NAMES": {
+    "SUNDAY": "周日",
+    "MONDAY": "周一",
+    "TUESDAY": "周二",
+    "WEDNESDAY": "周三",
+    "THURSDAY": "周四",
+    "FRIDAY": "周五",
+    "SATURDAY": "周六"
+  },
   "START_CONVERSATION": "开始会话",
   "END_CONVERSATION": "结束对话",
   "CONTINUE_CONVERSATION": "继续对话",
@@ -94,6 +105,11 @@
     "PLACEHOLDER": "搜索表情符号",
     "NOT_FOUND": "没有适合你的搜索结果",
     "ARIA_LABEL": "Emoji选择器"
+  },
+  "EMOJI_ICON_PICKER": {
+    "SEARCH_EMOJI": "Search emoji…",
+    "FREQUENTLY_USED": "Frequently used",
+    "NO_EMOJI": "没有适合你的搜索结果"
   },
   "CSAT": {
     "TITLE": "评价您的对话",

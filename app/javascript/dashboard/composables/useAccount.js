@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useMapGetter } from './store';
+import { useMapGetter, useStore } from './store';
 
 /**
  * Composable for account-related operations.
@@ -12,11 +12,22 @@ export function useAccount() {
    * @type {import('vue').ComputedRef<number>}
    */
   const route = useRoute();
+  const store = useStore();
   const getAccountFn = useMapGetter('accounts/getAccount');
+  const isOnChatwootCloud = useMapGetter('globalConfig/isOnChatwootCloud');
+  const isMetaInboxCreationDisabled = useMapGetter(
+    'globalConfig/isMetaInboxCreationDisabled'
+  );
+  const isMetaMessageSendingDisabled = useMapGetter(
+    'globalConfig/isMetaMessageSendingDisabled'
+  );
+  const isFeatureEnabledonAccount = useMapGetter(
+    'accounts/isFeatureEnabledonAccount'
+  );
+
   const accountId = computed(() => {
     return Number(route.params.accountId);
   });
-
   const currentAccount = computed(() => getAccountFn.value(accountId.value));
 
   /**
@@ -28,6 +39,10 @@ export function useAccount() {
     return `/app/accounts/${accountId.value}/${url}`;
   };
 
+  const isCloudFeatureEnabled = feature => {
+    return isFeatureEnabledonAccount.value(currentAccount.value.id, feature);
+  };
+
   const accountScopedRoute = (name, params, query) => {
     return {
       name,
@@ -36,11 +51,28 @@ export function useAccount() {
     };
   };
 
+  const updateAccount = async (data, options) => {
+    await store.dispatch('accounts/update', {
+      ...data,
+      options,
+    });
+  };
+
+  const finishOnboarding = async data => {
+    await store.dispatch('accounts/finishOnboarding', data);
+  };
+
   return {
     accountId,
     route,
     currentAccount,
     accountScopedUrl,
     accountScopedRoute,
+    isCloudFeatureEnabled,
+    isOnChatwootCloud,
+    isMetaInboxCreationDisabled,
+    isMetaMessageSendingDisabled,
+    updateAccount,
+    finishOnboarding,
   };
 }

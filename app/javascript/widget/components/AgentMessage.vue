@@ -6,12 +6,10 @@ import { messageStamp } from 'shared/helpers/timeHelper';
 import ImageBubble from 'widget/components/ImageBubble.vue';
 import VideoBubble from 'widget/components/VideoBubble.vue';
 import FileBubble from 'widget/components/FileBubble.vue';
-import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 import { MESSAGE_TYPE } from 'widget/helpers/constants';
 import configMixin from '../mixins/configMixin';
 import messageMixin from '../mixins/messageMixin';
 import { isASubmittedFormMessage } from 'shared/helpers/MessageTypeHelper';
-import { useDarkMode } from 'widget/composables/useDarkMode';
 import ReplyToChip from 'widget/components/ReplyToChip.vue';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
 import { emitter } from 'shared/helpers/mitt';
@@ -22,7 +20,6 @@ export default {
     AgentMessageBubble,
     ImageBubble,
     VideoBubble,
-    Thumbnail,
     UserMessage,
     FileBubble,
     MessageReplyButton,
@@ -38,12 +35,6 @@ export default {
       type: Object,
       default: () => {},
     },
-  },
-  setup() {
-    const { getThemeClass } = useDarkMode();
-    return {
-      getThemeClass,
-    };
   },
   data() {
     return {
@@ -79,6 +70,10 @@ export default {
         return this.message.sender.available_name || this.message.sender.name;
       }
 
+      if (this.message.additional_attributes?.sender_name) {
+        return this.message.additional_attributes.sender_name;
+      }
+
       if (this.useInboxAvatarForBot) {
         return this.channelConfig.websiteName;
       }
@@ -94,9 +89,13 @@ export default {
         return displayImage;
       }
 
-      return this.message.sender
-        ? this.message.sender.avatar_url
-        : displayImage;
+      if (this.message.sender) {
+        return this.message.sender.avatar_url;
+      }
+
+      return (
+        this.message.additional_attributes?.sender_avatar_url || displayImage
+      );
     },
     hasRecordedResponse() {
       return (
@@ -171,15 +170,20 @@ export default {
     }"
   >
     <div v-if="!isASubmittedForm" class="agent-message">
-      <div class="avatar-wrap">
-        &nbsp;
-      </div>
+      <div class="avatar-wrap">&nbsp;</div>
       <div class="message-wrap">
         <div v-if="hasReplyTo" class="flex mt-2 mb-1 text-xs">
           <ReplyToChip :reply-to="replyTo" />
         </div>
-        <div class="flex gap-1">
-          <div class="space-y-2">
+        <div class="flex w-full gap-1">
+          <div
+            class="space-y-2"
+            :class="{
+              'w-full':
+                contentType === 'form' &&
+                !messageContentAttributes?.submitted_values,
+            }"
+          >
             <AgentMessageBubble
               v-if="shouldDisplayAgentMessage"
               :content-type="contentType"
@@ -190,10 +194,8 @@ export default {
             />
             <div
               v-if="hasAttachments"
-              class="space-y-2 chat-bubble has-attachment agent"
-              :class="
-                (wrapClass, getThemeClass('bg-white', 'dark:bg-slate-700'))
-              "
+              class="space-y-2 chat-bubble has-attachment agent bg-n-background dark:bg-n-solid-3"
+              :class="wrapClass"
             >
               <div
                 v-for="attachment in message.attachments"
@@ -214,7 +216,11 @@ export default {
                   @error="onVideoLoadError"
                 />
 
-                <audio v-else-if="attachment.file_type === 'audio'" controls>
+                <audio
+                  v-else-if="attachment.file_type === 'audio'"
+                  controls
+                  class="h-10 dark:invert"
+                >
                   <source :src="attachment.data_url" />
                 </audio>
                 <FileBubble v-else :url="attachment.data_url" />
