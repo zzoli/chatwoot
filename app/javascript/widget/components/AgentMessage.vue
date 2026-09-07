@@ -6,7 +6,6 @@ import { messageStamp } from 'shared/helpers/timeHelper';
 import ImageBubble from 'widget/components/ImageBubble.vue';
 import VideoBubble from 'widget/components/VideoBubble.vue';
 import FileBubble from 'widget/components/FileBubble.vue';
-import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import { MESSAGE_TYPE } from 'widget/helpers/constants';
 import configMixin from '../mixins/configMixin';
 import messageMixin from '../mixins/messageMixin';
@@ -21,7 +20,6 @@ export default {
     AgentMessageBubble,
     ImageBubble,
     VideoBubble,
-    Avatar,
     UserMessage,
     FileBubble,
     MessageReplyButton,
@@ -172,17 +170,7 @@ export default {
     }"
   >
     <div v-if="!isASubmittedForm" class="agent-message">
-      <div class="avatar-wrap">
-        <div class="user-thumbnail-box">
-          <Avatar
-            v-if="message.showAvatar || hasRecordedResponse"
-            :src="avatarUrl"
-            :size="24"
-            :name="agentName"
-            rounded-full
-          />
-        </div>
-      </div>
+      <div class="avatar-wrap">&nbsp;</div>
       <div class="message-wrap">
         <div v-if="hasReplyTo" class="flex mt-2 mb-1 text-xs">
           <ReplyToChip :reply-to="replyTo" />
@@ -246,12 +234,6 @@ export default {
             />
           </div>
         </div>
-        <p
-          v-if="message.showAvatar || hasRecordedResponse"
-          class="agent-name text-n-slate-11"
-        >
-          {{ agentName }}
-        </p>
       </div>
     </div>
 
