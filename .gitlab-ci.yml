@@ -19,6 +19,5 @@ build_develop:
   after_script:
     - docker logout ${CI_REGISTRY}
   stage: build
-  tags:
-    - local
+
 
